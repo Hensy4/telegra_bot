@@ -26,8 +26,21 @@ async def news(message):
         try:
             async with call_web.get(f"https://newsapi.org/v2/top-headlines?country=us&apiKey={API_KEY}") as open_web:
                 data = await open_web.json()
-                st = f"📰 {data['articles'][0]['title']}.\n\n📰 {data['articles'][1]['title']}.\n\n📰 {data['articles'][2]['title']}.\n\n📰 {data['articles'][3]['title']}.\n\n📰 {data['articles'][4]['title']}"
-                await message.answer(st)
+                # st = f"📰 {data['articles'][0]['title']}.\n\n📰 {data['articles'][1]['title']}.\n\n📰 {data['articles'][2]['title']}.\n\n📰 {data['articles'][3]['title']}.\n\n📰 {data['articles'][4]['title']}"
+                
+            
+            
+            for words in [f"{data['articles'][0]['title']} \n\n{data['articles'][0]['url']}",
+                          f"{data['articles'][1]['title']} \n\n{data['articles'][1]['url']}",
+                          f"{data['articles'][2]['title']} \n\n{data['articles'][2]['url']}",
+                          f"{data['articles'][3]['title']} \n\n{data['articles'][3]['url']}",
+                          f"{data['articles'][4]['title']} \n\n{data['articles'][4]['url']}"
+                          ]:
+                async with call_web.get(f"https://api.mymemory.translated.net/get?q={words}&langpair=en|ru") as open_web_tran:
+                    data = await open_web_tran.json()
+                    await message.answer(data['responseData']['translatedText'])
+                
+                
         except aiohttp.ClientError:
             await message.answer("Ошибка соединения. Попробуйте позже")
         except asyncio.TimeoutError:
