@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv # Берёт инструмент для чтения .env
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandObject
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 load_dotenv() # Открывает .env и загружает все переменные в память
 TOKEN = os.getenv("BOT_TOKEN")  # Достаёт значение BOT_TOKEN из памяти
@@ -13,6 +14,35 @@ WEATHER_API = os.getenv("WEATHER_API_KEY")
 bot = Bot(token=TOKEN) # это как ссылка куда общаться 
 dp = Dispatcher() # берем данные с класса деспачер
 
+
+
+
+
+
+@dp.callback_query()
+async def callback(call_back):
+    if call_back.data == "help":
+        await call_back.message.answer("Введите /help для получения новостей.")
+    elif call_back.data == "crypto":
+        await call_back.message.answer("Введите /crypto для получнния крипты")
+    elif call_back.data == "weather":
+        await call_back.message.answer("Введите /weather + город для получения погоды")
+    elif call_back.data == "news":
+        await call_back.message.answer("Введите /news для получения новостей")
+    
+    await call_back.answer()
+    
+@dp.message(Command("menu"))
+async def menu(message):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Помощь", callback_data="help")],
+    [InlineKeyboardButton(text="Крипта", callback_data="crypto")],
+    [InlineKeyboardButton(text="Погода", callback_data="weather")],
+    [InlineKeyboardButton(text="Новости", callback_data="news")]])
+    
+    await message.answer("Выберите действие", reply_markup=keyboard)
+
+    
 @dp.message(Command("start"))
 async def start(message):
     await message.answer(f"🤖 Я бот-помощник\n"
@@ -35,6 +65,9 @@ async def help(message):
         "      Пример: <code>/crypto</code>\n\n"
         "____________________________________________________\n",
         parse_mode="HTML")
+    
+
+
     
 @dp.message(Command("crypto"))
 async def crypto(message):
