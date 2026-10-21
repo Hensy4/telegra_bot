@@ -4,7 +4,11 @@ import os
 from dotenv import load_dotenv # Берёт инструмент для чтения .env
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandObject
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram import F
+
 
 load_dotenv() # Открывает .env и загружает все переменные в память
 TOKEN = os.getenv("BOT_TOKEN")  # Достаёт значение BOT_TOKEN из памяти
@@ -17,40 +21,34 @@ dp = Dispatcher() # берем данные с класса деспачер
 
 
 
+@dp.message(F.text == "📰 Новости")
+async def news_button(message):
+    await news(message)
+   
+@dp.message(F.text == "🌤️ Погода")
+async def wether_button(message):
+    await message.answer("🌤️ Введите команду с городом:\nПример: /weather Уфа")
+    
+@dp.message(F.text == "🪙 Крипта")
+async def crypto_button(message):
+    await crypto(message)
+    
+@dp.message(F.text == "❓ Помощь")
+async def help_button(message):
+    await help(message)
 
-
-@dp.callback_query()
-async def callback(call_back):
-    if call_back.data == "help":
-        await call_back.message.answer("Введите /help для получения новостей.")
-    elif call_back.data == "crypto":
-        await call_back.message.answer("Введите /crypto для получнния крипты")
-    elif call_back.data == "weather":
-        await call_back.message.answer("Введите /weather + город для получения погоды")
-    elif call_back.data == "news":
-        await call_back.message.answer("Введите /news для получения новостей")
-    
-    await call_back.answer()
-    
-@dp.message(Command("menu"))
-async def menu(message):
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Помощь", callback_data="help")],
-    [InlineKeyboardButton(text="Крипта", callback_data="crypto")],
-    [InlineKeyboardButton(text="Погода", callback_data="weather")],
-    [InlineKeyboardButton(text="Новости", callback_data="news")]])
-    
-    await message.answer("Выберите действие", reply_markup=keyboard)
-
-    
 @dp.message(Command("start"))
 async def start(message):
-    await message.answer(f"🤖 Я бот-помощник\n"
-                        "____________________________________________________\n\n"
-                        f"👋 Привет, {message.from_user.first_name}\n"
-                        f"📋 Введит /help, чтобы узнать что я умею\n\n"
-                        "____________________________________________________\n\n"
-                        )
+    keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="📰 Новости"), KeyboardButton(text="🪙 Крипта")],
+        [KeyboardButton(text="🌤️ Погода"), KeyboardButton(text="❓ Помощь")]
+    ],
+    resize_keyboard=True,
+    input_field_placeholder="Выбери действие...")
+    
+    await message.answer("Выбери действие:", reply_markup=keyboard)
+    
     
 @dp.message(Command("help"))
 async def help(message):
@@ -67,8 +65,6 @@ async def help(message):
         parse_mode="HTML")
     
 
-
-    
 @dp.message(Command("crypto"))
 async def crypto(message):
     async with aiohttp.ClientSession() as call_web:
@@ -100,31 +96,6 @@ async def crypto(message):
         except Exception as ex:
             await message.answer(f"Ошибка: {ex}")
 
-    
-@dp.message(Command("weather"))
-async def weather(message: types.Message, command: CommandObject):
-    
-    city = command.args
-    if not city:
-        await message.answer("Бро введи город \n(пример /weather Уфа)")
-        return
-    try:
-        async with aiohttp.ClientSession() as call_web:
-            async with call_web.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API}&units=metric&lang=ru") as open_web:
-                if open_web.status == 200:
-                    data = await open_web.json()
-                    await message.answer(f"🌍 Погода в городе {data['name']}\n{'_'*50}\n\n☁️ Описание: {data['weather'][0]['description']}, \n🌡️ Температура: {data['main']['temp']:.1f} °C, \n💧 Влажность: {data['main']['humidity']}%\n\n{'_'*50}")
-                else:
-                    await message.answer(f"❌ Город '{city}' не найден")
-    except asyncio.TimeoutError:
-        await message.answer("Ошибка: времени")
-    except aiohttp.ClientError:
-        await message.answer("Ошибка: вызва")
-    except Exception as ex:
-        await message.answer(f"Ошибка: {ex}")
-
-        
-        
         
 @dp.message(Command("news"))
 async def news(message):
@@ -155,6 +126,29 @@ async def news(message):
         except Exception as ex:
             print(f"Ошибка: {ex}")
             await message.answer(f"Что-то пошло не так.")
+            
+            
+@dp.message(Command("weather"))
+async def weather(message: types.Message, command: CommandObject):
+    
+    city = command.args
+    if not city:
+        await message.answer("Бро введи город \n(пример /weather Уфа)")
+        return
+    try:
+        async with aiohttp.ClientSession() as call_web:
+            async with call_web.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API}&units=metric&lang=ru") as open_web:
+                if open_web.status == 200:
+                    data = await open_web.json()
+                    await message.answer(f"🌍 Погода в городе {data['name']}\n{'_'*50}\n\n☁️ Описание: {data['weather'][0]['description']}, \n🌡️ Температура: {data['main']['temp']:.1f} °C, \n💧 Влажность: {data['main']['humidity']}%\n\n{'_'*50}")
+                else:
+                    await message.answer(f"❌ Город '{city}' не найден")
+    except asyncio.TimeoutError:
+        await message.answer("Ошибка: времени")
+    except aiohttp.ClientError:
+        await message.answer("Ошибка: вызва")
+    except Exception as ex:
+        await message.answer(f"Ошибка: {ex}")
             
 async def main():
     print("Бот запущен!")
