@@ -1,7 +1,7 @@
 import asyncio
 import aiohttp
 import os
-from dotenv import load_dotenv # Берёт инструмент для чтения .env
+from dotenv import load_dotenv # Загружает переменные из .env
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandObject
 
@@ -10,13 +10,13 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram import F
 
 
-load_dotenv() # Открывает .env и загружает все переменные в память
-TOKEN = os.getenv("BOT_TOKEN")  # Достаёт значение BOT_TOKEN из памяти
+load_dotenv() # Читает .env и загружает переменные в память
+TOKEN = os.getenv("BOT_TOKEN")  # Получает значение BOT_TOKEN
 API_KEY = os.getenv("NEWS_API_KEY")
 WEATHER_API = os.getenv("WEATHER_API_KEY")
 
-bot = Bot(token=TOKEN) # это как ссылка куда общаться 
-dp = Dispatcher() # берем данные с класса деспачер
+bot = Bot(token=TOKEN) # Объект бота для отправки запросов
+dp = Dispatcher() # Диспетчер для обработки сообщений
 
 
 
